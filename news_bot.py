@@ -18,19 +18,18 @@ def run():
     except:
         content = "新聞抓取失敗"
 
-    # 3. Gemini 生成 (這次使用絕對正確的型號：gemini-1.5-flash)
+    # 3. Gemini 生成 (使用目前最通用的型號)
     genai.configure(api_key=gemini_key)
     model = genai.GenerativeModel('gemini-1.5-flash')
     try:
-        # 加上更明確的指令
-        response = model.generate_content(f"請用中文簡短摘要以下新聞：\n{content}")
+        response = model.generate_content(f"請用中文簡短摘要：\n{content}")
         text = response.text
     except Exception as e:
-        text = f"AI 生成失敗，原因：{str(e)}"
+        text = f"AI 生成失敗: {str(e)}"
 
     # 4. 寄出郵件
     msg = MIMEMultipart()
-    msg['Subject'] = "🤖 恭喜！AI 情報正式成功"
+    msg['Subject'] = "🤖 AI 情報 (正式大成功)"
     msg['From'] = gmail_user
     msg['To'] = "yehichun0907@gmail.com"
     msg.attach(MIMEText(text, 'plain'))
