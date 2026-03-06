@@ -3,13 +3,10 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def run():
-    # 1. 取得環境變數
-    news_key = os.getenv("NEWS_API_KEY")
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    gmail_user = os.getenv("GMAIL_USER")
-    gmail_pw = os.getenv("GMAIL_APP_PASSWORD")
+    news_key, gemini_key = os.getenv("NEWS_API_KEY"), os.getenv("GEMINI_API_KEY")
+    gmail_user, gmail_pw = os.getenv("GMAIL_USER"), os.getenv("GMAIL_APP_PASSWORD")
     
-    # 2. 抓取新聞
+    # 1. 抓新聞
     url = f"https://newsapi.org/v2/everything?q=AI&language=zh&pageSize=3&apiKey={news_key}"
     try:
         r = requests.get(url).json()
@@ -18,18 +15,22 @@ def run():
     except:
         content = "新聞抓取失敗"
 
-    # 3. Gemini 生成 (使用目前最通用的型號)
+    # 2. Gemini 生成 (這是最純粹的型號名稱寫法)
     genai.configure(api_key=gemini_key)
+    
+    # 【關鍵修正】拿掉 models/，直接用型號名
     model = genai.GenerativeModel('gemini-1.5-flash')
+    
     try:
-        response = model.generate_content(f"請用中文簡短摘要：\n{content}")
+        response = model.generate_content(f"請用中文摘要：\n{content}")
         text = response.text
     except Exception as e:
-        text = f"AI 生成失敗: {str(e)}"
+        # 如果還是失敗，我們讓它把錯誤細節噴出來
+        text = f"AI 生成失敗，細節: {str(e)}"
 
-    # 4. 寄出郵件
+    # 3. 寄信
     msg = MIMEMultipart()
-    msg['Subject'] = "🤖 AI 情報 (正式大成功)"
+    msg['Subject'] = "🤖 AI 情報 (這是最後一搏了)"
     msg['From'] = gmail_user
     msg['To'] = "yehichun0907@gmail.com"
     msg.attach(MIMEText(text, 'plain'))
