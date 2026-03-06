@@ -1,7 +1,4 @@
-import os
-import requests
-import smtplib
-import google.generativeai as genai
+import os, requests, smtplib, google.generativeai as genai
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -12,19 +9,18 @@ def run():
     gmail_pw = os.getenv("GMAIL_APP_PASSWORD")
 
     # 1. 抓取新聞
-    url = f"https://newsapi.org/v2/everything?q=AI&language=zh&sortBy=publishedAt&pageSize=3&apiKey={news_key}"
+    url = f"https://newsapi.org/v2/everything?q=AI&language=zh&pageSize=3&apiKey={news_key}"
     articles = requests.get(url).json().get('articles', [])
     news_content = "\n".join([f"標題: {a['title']}" for a in articles])
 
     # 2. Gemini 生成 (使用最穩定的 gemini-pro)
     genai.configure(api_key=gemini_key)
     model = genai.GenerativeModel('gemini-pro')
-    prompt = f"請摘要以下 AI 新聞並給出商業建議：\n\n{news_content}"
-    response = model.generate_content(prompt)
+    response = model.generate_content(f"摘要：{news_content}")
 
     # 3. 寄出信件
     msg = MIMEMultipart()
-    msg['Subject'] = "🤖 AI 商業情報 (最終暴力修正版)"
+    msg['Subject'] = "🤖 AI 情報 (成功版)"
     msg['From'] = gmail_user
     msg['To'] = "yehichun0907@gmail.com"
     msg.attach(MIMEText(response.text, 'plain'))
