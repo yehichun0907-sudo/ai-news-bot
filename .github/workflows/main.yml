@@ -1,8 +1,8 @@
 name: Daily AI News
 on:
-  workflow_dispatch: # 讓你可以隨時手動點擊測試
+  workflow_dispatch: # 讓你隨時手動點擊執行
   schedule:
-    - cron: '0 23 * * *' # 每天台灣時間早上 7:00 自動執行
+    - cron: '0 23 * * *' # 每天台灣時間早上 7 點執行
 jobs:
   run-bot:
     runs-on: ubuntu-latest
@@ -20,4 +20,4 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: python ai_news_digest.py
+        run: python news_bot.py
