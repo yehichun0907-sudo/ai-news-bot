@@ -8,29 +8,26 @@ def run():
     
     # 1. 抓新聞
     url = f"https://newsapi.org/v2/everything?q=AI&language=zh&pageSize=3&apiKey={news_key}"
-    try:
-        r = requests.get(url).json()
-        articles = r.get('articles', [])
-        content = "\n".join([f"標題: {a['title']}" for a in articles]) if articles else "今日無新聞"
-    except:
-        content = "新聞抓取失敗"
+    r = requests.get(url).json()
+    articles = r.get('articles', [])
+    content = "\n".join([f"標題: {a['title']}" for a in articles]) if articles else "今日無新聞"
 
-    # 2. Gemini 生成 (這是最純粹的型號名稱寫法)
+    # 2. 自動偵測型號 (這招保證不會 404)
     genai.configure(api_key=gemini_key)
-    
-    # 【關鍵修正】拿掉 models/，直接用型號名
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
     try:
-        response = model.generate_content(f"請用中文摘要：\n{content}")
+        # 找尋該帳號下支援 generateContent 的第一個模型
+        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        target_model = available_models[0] if available_models else "gemini-1.5-flash"
+        
+        model = genai.GenerativeModel(target_model)
+        response = model.generate_content(f"請用中文簡短摘要：\n{content}")
         text = response.text
     except Exception as e:
-        # 如果還是失敗，我們讓它把錯誤細節噴出來
-        text = f"AI 生成失敗，細節: {str(e)}"
+        text = f"AI 生成失敗，錯誤細節: {str(e)}"
 
     # 3. 寄信
     msg = MIMEMultipart()
-    msg['Subject'] = "🤖 AI 情報 (這是最後一搏了)"
+    msg['Subject'] = f"🤖 AI 日報 (型號自動匹配版)"
     msg['From'] = gmail_user
     msg['To'] = "yehichun0907@gmail.com"
     msg.attach(MIMEText(text, 'plain'))
