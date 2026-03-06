@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def run():
+    # 讀取 Secrets
     news_key = os.getenv("NEWS_API_KEY")
     gemini_key = os.getenv("GEMINI_API_KEY")
     gmail_user = os.getenv("GMAIL_USER")
@@ -16,15 +17,15 @@ def run():
     articles = requests.get(url).json().get('articles', [])
     news_content = "\n".join([f"Title: {a['title']}\nDesc: {a['description']}" for a in articles])
 
-    # 2. Gemini 生成 (已修正型號)
+    # 2. Gemini 生成 (完整版配置)
     genai.configure(api_key=gemini_key)
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"你是一位 AI 商業顧問，請將以下新聞用繁體中文摘要，並提供 3 個變現建議：\n\n{news_content}"
     response = model.generate_content(prompt)
 
-    # 3. 寄信
+    # 3. 寄出信件
     msg = MIMEMultipart()
-    msg['Subject'] = "🤖 今日 AI 商業情報 (手機修正版)"
+    msg['Subject'] = "🤖 今日 AI 商業情報 (最終修正版)"
     msg['From'] = gmail_user
     msg['To'] = "yehichun0907@gmail.com"
     msg.attach(MIMEText(response.text, 'plain'))
@@ -35,3 +36,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+
